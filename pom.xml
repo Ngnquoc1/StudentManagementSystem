@@ -13,6 +13,12 @@
             <artifactId>AbsoluteLayout</artifactId>
             <version>RELEASE250</version>
         </dependency>
+        
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc17</artifactId>
+            <version>21.9.0.0</version>
+        </dependency>
     </dependencies>
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -63,5 +69,6 @@
         </plugins>
     </build>
    
+
 
 </project>

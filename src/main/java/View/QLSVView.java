@@ -8,12 +8,15 @@ import Model.*;
 import java.util.ArrayList;
 import javax.swing.ButtonGroup;
 import Controller.*;
+import database.DatabaseConnection;
 import java.awt.Font;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
@@ -472,7 +475,20 @@ public final class QLSVView extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(QLSVView.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        try {
+            DatabaseConnection db = DatabaseConnection.getInstance();
+            Connection conn = db.getConnectionn();
 
+            if (conn != null) {
+                System.out.println("✅ Kết nối CSDL thành công!");
+            } else {
+                System.out.println("❌ Kết nối thất bại!");
+            }
+
+            db.disconnect();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new QLSVView().setVisible(true);
