@@ -9,20 +9,19 @@ import java.util.ArrayList;
 import javax.swing.ButtonGroup;
 import Controller.*;
 import database.DatabaseConnection;
-import java.awt.Font;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import database.ThiSinhDAO;
+
+//import java.awt.Font;
+//import java.io.File;
+//import java.io.FileInputStream;
+//import java.io.FileOutputStream;
+//import java.io.ObjectInputStream;
+//import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
-import java.util.Set;
-import java.util.TreeSet;
 import javax.swing.Action;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -31,18 +30,15 @@ import javax.swing.table.DefaultTableModel;
 
 public final class QLSVView extends javax.swing.JFrame {
 
-    public QLSVModel model;
 
     public QLSVView() {
-        this.model = new QLSVModel();
         initComponents();
         myinit();
     }
 
     public void myinit() {
 
-        ArrayList<Tinh> listTinh;
-        listTinh = Tinh.getDSTinh();
+        ArrayList<Tinh> listTinh=Tinh.getDSTinh();
         for (Tinh t : listTinh) {
             BPValueFind.addItem(t.getTenTinh());
             BPValue2.addItem(t.getTenTinh());
@@ -479,21 +475,19 @@ public final class QLSVView extends javax.swing.JFrame {
             DatabaseConnection db = DatabaseConnection.getInstance();
             Connection conn = db.getConnectionn();
 
-            if (conn != null) {
-                System.out.println("✅ Kết nối CSDL thành công!");
-            } else {
-                System.out.println("❌ Kết nối thất bại!");
-            }
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    new QLSVView().setVisible(true);
+                }
+            });
 
-            db.disconnect();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                db.disconnect();
+            }));
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new QLSVView().setVisible(true);
-            }
-        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -648,8 +642,8 @@ public final class QLSVView extends javax.swing.JFrame {
             ts.getTenThiSinh(),
             ts.getQueQuan().getTenTinh(),
             ts.getNgaySinh().getDate() + "/" + (ts.getNgaySinh().getMonth() + 1) + "/"
-            + (ts.getNgaySinh().getYear() + 1900) + "" + "",
-            ts.isGioiTinh() == true ? "Male" : "Female",
+            + (ts.getNgaySinh().getYear() + 1900) + "" ,
+            ts.isGioiTinh() ? "Male" : "Female",
             ts.getDiemMon1(),
             ts.getDiemMon2(),
             ts.getDiemMon3()
@@ -657,31 +651,31 @@ public final class QLSVView extends javax.swing.JFrame {
     }
 
     public void addOrUpdateTS(ThiSinh ts) {
-        DefaultTableModel modelTabel = (DefaultTableModel) studentTable.getModel();
+        DefaultTableModel modelTable = (DefaultTableModel) studentTable.getModel();
+        ThiSinhDAO dao = new ThiSinhDAO();
 
-        if (model.kiemTraTonTai(ts) == false) {
-            this.model.insert(ts);
-            this.addTSToTable(ts);
+        if (dao.selectByID(ts.getMaThiSinh()).isEmpty()) {
+            dao.insertDB(ts);
+            addTSToTable(ts);
         } else {
-            this.model.update(ts);
-            int soLuongDong = modelTabel.getRowCount();
-            for (int i = 0; i < soLuongDong; i++) {
-                String id = (String) modelTabel.getValueAt(i, 0);
+            dao.updateDB(ts);
+            int rowCount = modelTable.getRowCount();
+            for (int i = 0; i < rowCount; i++) {
+                String id = (String) modelTable.getValueAt(i, 0);
                 if (id.equals(ts.getMaThiSinh())) {
-                    modelTabel.setValueAt(ts.getMaThiSinh(), i, 0);
-                    modelTabel.setValueAt(ts.getTenThiSinh(), i, 1);
-                    modelTabel.setValueAt(ts.getQueQuan().getTenTinh(), i, 2);
-                    modelTabel.setValueAt(ts.getNgaySinh().getDate() + "/" + (ts.getNgaySinh().getMonth() + 1) + "/"
-                            + (ts.getNgaySinh().getYear() + 1900) + "", i, 3);
-                    modelTabel.setValueAt((ts.isGioiTinh() ? "Male" : "Female"), i, 4);
-                    modelTabel.setValueAt(ts.getDiemMon1(), i, 5);
-                    modelTabel.setValueAt(ts.getDiemMon2(), i, 6);
-                    modelTabel.setValueAt(ts.getDiemMon3(), i, 7);
+                    modelTable.setValueAt(ts.getMaThiSinh(), i, 0);
+                    modelTable.setValueAt(ts.getTenThiSinh(), i, 1);
+                    modelTable.setValueAt(ts.getQueQuan().getTenTinh(), i, 2);
+                    modelTable.setValueAt(ts.getNgaySinh().getDate() + "/" + (ts.getNgaySinh().getMonth() + 1) + "/"
+                            + (ts.getNgaySinh().getYear() + 1900) + "",i, 3);
+                    modelTable.setValueAt(ts.isGioiTinh() ? "Male" : "Female", i, 4);
+                    modelTable.setValueAt(ts.getDiemMon1(), i, 5);
+                    modelTable.setValueAt(ts.getDiemMon2(), i, 6);
+                    modelTable.setValueAt(ts.getDiemMon3(), i, 7);
                     break;
                 }
             }
         }
-
     }
 
     public ThiSinh getSelectedTS() {
@@ -736,7 +730,7 @@ public final class QLSVView extends javax.swing.JFrame {
 
         if (luaChon == JOptionPane.YES_OPTION) {
             ThiSinh ts = this.getSelectedTS();
-            this.model.delete(ts);
+            int ok = new ThiSinhDAO().deleteDB(ts);
             modelTable.removeRow(rIndex);
         }
 
@@ -748,23 +742,20 @@ public final class QLSVView extends javax.swing.JFrame {
         DefaultTableModel modelTable = (DefaultTableModel) studentTable.getModel();
         modelTable.getDataVector().removeAllElements();
         modelTable.fireTableDataChanged();
-        System.out.println(idF + "-" + bpFIndex);
-        if ("".equals(idF) && bpFIndex == 0) {
-            for (Object ts : this.model.getDsThiSinh()) {
-                this.addTSToTable((ThiSinh) ts);
-            }
+
+        ThiSinhDAO dao = new ThiSinhDAO();
+        ArrayList<ThiSinh> resultList;
+        if (idF.isEmpty() && bpFIndex == 0) {
+            resultList = dao.selectAllDB();
+        } else if (!idF.isEmpty()) {
+            resultList = dao.selectByID(idF);
         } else {
             Tinh bpF = Tinh.getTinhById(bpFIndex);
-            if (!"".equals(idF)) {
-                ThiSinh ts = this.model.getThiSinhById(idF);
-                this.addTSToTable(ts);
-            } else {
-                Tinh tinh = Tinh.getTinhById(bpFIndex);
-                ArrayList<ThiSinh> findList = this.model.getThiSinhByBp(tinh);
-                for (ThiSinh x : findList) {
-                    this.addTSToTable(x);
-                }
-            }
+            resultList = dao.selectByCondition(" \"TinhID\" = " + bpF.getMaTinh());
+        }
+
+        for (ThiSinh ts : resultList) {
+            addTSToTable(ts);
         }
     }
 
@@ -780,63 +771,63 @@ public final class QLSVView extends javax.swing.JFrame {
         }
     }
 
-    private void saveFile(String path) {
-        try {
-            this.model.setTenFile(path);
-            FileOutputStream fos = new FileOutputStream(path);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            for (Object ts : this.model.getDsThiSinh()) {
-                oos.writeObject((ThiSinh) ts);
-            }
-            oos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void SaveFile() {
-        if (this.model.getTenFile().length() > 0) {
-            saveFile(this.model.getTenFile());
-        } else {
-            JFileChooser fc = new JFileChooser();
-            int returnVal = fc.showSaveDialog(this);
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File file = fc.getSelectedFile();
-                saveFile(file.getAbsolutePath());
-            }
-        }
-    }
-
-
-    public void openFile(File file) {
-        ArrayList ds = new ArrayList();
-        try {
-            this.model.setTenFile(file.getAbsolutePath());
-            FileInputStream fis = new FileInputStream(file);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            ThiSinh ts = null;
-            while ((ts = (ThiSinh) ois.readObject()) != null) {
-                ds.add(ts);
-            }
-            ois.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        this.model.setDsThiSinh(ds);
-    }
-
-    public void Open() {
-        JFileChooser fc = new JFileChooser();
-        int returnVal = fc.showOpenDialog(this);
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fc.getSelectedFile();
-            openFile(file);
-            DefaultTableModel modelTable = (DefaultTableModel) studentTable.getModel();
-            modelTable.getDataVector().removeAllElements();
-            modelTable.fireTableDataChanged();
-            for (Object ts : this.model.getDsThiSinh()) {
-                this.addTSToTable((ThiSinh) ts);
-            }
-        }
-    }
+//    private void saveFile(String path) {
+//        try {
+//            this.model.setTenFile(path);
+//            FileOutputStream fos = new FileOutputStream(path);
+//            ObjectOutputStream oos = new ObjectOutputStream(fos);
+//            for (Object ts : this.model.getDsThiSinh()) {
+//                oos.writeObject((ThiSinh) ts);
+//            }
+//            oos.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    public void SaveFile() {
+//        if (this.model.getTenFile().length() > 0) {
+//            saveFile(this.model.getTenFile());
+//        } else {
+//            JFileChooser fc = new JFileChooser();
+//            int returnVal = fc.showSaveDialog(this);
+//            if (returnVal == JFileChooser.APPROVE_OPTION) {
+//                File file = fc.getSelectedFile();
+//                saveFile(file.getAbsolutePath());
+//            }
+//        }
+//    }
+//
+//
+//    public void openFile(File file) {
+//        ArrayList ds = new ArrayList();
+//        try {
+//            this.model.setTenFile(file.getAbsolutePath());
+//            FileInputStream fis = new FileInputStream(file);
+//            ObjectInputStream ois = new ObjectInputStream(fis);
+//            ThiSinh ts = null;
+//            while ((ts = (ThiSinh) ois.readObject()) != null) {
+//                ds.add(ts);
+//            }
+//            ois.close();
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
+//        this.model.setDsThiSinh(ds);
+//    }
+//
+//    public void Open() {
+//        JFileChooser fc = new JFileChooser();
+//        int returnVal = fc.showOpenDialog(this);
+//        if (returnVal == JFileChooser.APPROVE_OPTION) {
+//            File file = fc.getSelectedFile();
+//            openFile(file);
+//            DefaultTableModel modelTable = (DefaultTableModel) studentTable.getModel();
+//            modelTable.getDataVector().removeAllElements();
+//            modelTable.fireTableDataChanged();
+//            for (Object ts : this.model.getDsThiSinh()) {
+//                this.addTSToTable((ThiSinh) ts);
+//            }
+//        }
+//    }
 }

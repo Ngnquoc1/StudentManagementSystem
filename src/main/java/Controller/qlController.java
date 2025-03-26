@@ -27,7 +27,6 @@ public class qlController implements Action {
         String src = e.getActionCommand();
         if ("Add".equals(src)) {
             this.qlView.clearForm();
-            this.qlView.model.setLuaChon("Add");
         } else if ("Save".equals(src)) {
             try {
                 ThiSinh ts = this.qlView.collectFormData();
@@ -46,12 +45,12 @@ public class qlController implements Action {
         } else if(src.equals("About Me")){
             this.qlView.AboutMe();
         } else if(src.equals("Exit")){
-            this.qlView.Exit();
-        } else if(src.equals("SaveFile")){
-            this.qlView.SaveFile();
-        } else if(src.equals("Open")){
-            this.qlView.Open();
-        }
+            this.qlView.Exit();}
+//        } else if(src.equals("SaveFile")){
+//            this.qlView.SaveFile();
+//        } else if(src.equals("Open")){
+//            this.qlView.Open();
+//        }
     }
 
     @Override

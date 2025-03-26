@@ -123,6 +123,7 @@ public class Tinh implements Serializable {
         for (String tenTinh : arr_tinh) {
             Tinh t = new Tinh(i, tenTinh);
             listTinh.add(t);
+            i+=1;
         }
         return listTinh;
     }
